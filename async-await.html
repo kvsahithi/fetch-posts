@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Page title -->
+    <title>Async-Await Example</title>
+
+    <!-- Link to external CSS for styling -->
+    <link rel="stylesheet" href="styles.css" />
+
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.jpg" />
+
+    <!-- Link to JavaScript file -->
+    <script src="script.js"></script>
+  </head>
+  <body>
+    <!-- Main wrapper to center content vertically -->
+    <div class="main-wrapper">
+      <!-- Button container -->
+      <div class="button-container">
+        <!-- Button triggers async/await-based data fetch on click -->
+        <button onclick="fetchDataWithAsync()">Click me!</button>
+      </div>
+
+      <!-- Container to display fetched posts -->
+      <div class="container">
+        <h2>Posts:</h2>
+        <div id="outputByAsync">
+          <!-- Output will be inserted here -->
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
