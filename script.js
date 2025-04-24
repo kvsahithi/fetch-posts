@@ -54,30 +54,40 @@ function fetchDataWithPromise() {
   container.style.display = "block";
   output.innerHTML = "<p>Loading...</p>";
 
-  // Create a custom Promise to handle timeout logic
+  // Create a Promise to manage fetch with timeout functionality
   let fetchPromise = new Promise((resolve, reject) => {
-    // Set a timeout to reject the promise after 5 seconds
-    let timeout = setTimeout(() => {
-      reject("Operation timed out.");
+    const controller = new AbortController(); //used to abort fetch if timeout occurs
+    const timeoutId = setTimeout(() => {
+      controller.abort(); // Abort the request after 5 seconds
     }, 5000);
 
-    // Start fetching the post data
-    fetch("https://dummyjson.com/posts")
+    // Fetch data using fetch API and the AbortController signal
+    fetch("https://dummyjson.com/posts", { signal: controller.signal })
       .then((response) => {
-        clearTimeout(timeout); // Clear timeout if response is received
-        return response.json();
+        clearTimeout(timeoutId); // Clear timeout once response is received
+        return response.json(); // Parse response as JSON
       })
       .then((data) => {
-        resolve(data.posts); // Resolve the promise with post data
+        // Simulate delay before resolving with post data
+        setTimeout(() => {
+          resolve(data.posts);
+        }, 5000);
       })
-      .catch((error) => reject("error fetching data!"));
+      .catch((error) => {
+        // Handle timeout error specifically
+        if (error.name === "AbortError") {
+          reject("Operation timed out.");
+        } else {
+          reject("Error fetching data!");
+        }
+      });
   });
 
-  // Handle the result or error from the Promise
+  // Consume the fetchPromise and update UI accordingly
   fetchPromise
     .then((data) => {
       output.innerHTML = "";
-      let ul = document.createElement("ul");
+      let ul = document.createElement("ul"); //Create a list to display posts
       ul.classList.add("post-list");
       data.forEach((post) => {
         let li = document.createElement("li");
@@ -88,6 +98,7 @@ function fetchDataWithPromise() {
       output.appendChild(ul);
     })
     .catch((error) => {
+      // Show error message in UI and log to console
       output.innerHTML = `<p class = 'error'>${error}</p>`;
       console.log("fetch error", error);
     });
@@ -103,13 +114,13 @@ async function fetchDataWithAsync() {
   mainWrapper.style.justifyContent = "flex-start";
   container.style.display = "block";
   output.innerHTML = "<p>Loading...</p>";
-  try {
-    // Set up abort controller to implement timeout
-    const controller = new AbortController();
-    const timeout = setTimeout(() => {
-      controller.abort(); // Cancel the fetch request after 5 seconds
-    }, 5000);
 
+  // Set up abort controller to implement timeout
+  const controller = new AbortController();
+  const timeout = setTimeout(() => {
+    controller.abort(); // Cancel the fetch request after 5 seconds
+  }, 5000);
+  try {
     // Fetch data with the controller's signal
     let response = await fetch("https://dummyjson.com/posts", {
       signal: controller.signal,
@@ -119,12 +130,14 @@ async function fetchDataWithAsync() {
       throw new Error(`HTTP Error! Status: ${response.status}`);
     }
     let data = await response.json();
-
+    await new Promise((resolve) => setTimeout(resolve, 5000));
     // Display fetched posts
     displayPosts(data.posts);
   } catch (error) {
-    // Display error message if any exception occurs
-    output.innerHTML = `<p class = 'error'>${error}</p>`;
+    // Handle errors and show meaningful messages
+    const message =
+      error.name === "AbortError" ? "Operation timed out." : error.message;
+    output.innerHTML = `<p class = 'error'>${message}</p>`;
     console.log("fetch error", error);
   }
 }
